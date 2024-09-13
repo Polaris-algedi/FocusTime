@@ -17,7 +17,9 @@ const startBtn = document.getElementById("startBtn");
 const pauseBtn = document.getElementById("pauseBtn");
 const resetBtn = document.getElementById("resetBtn");
 const pomodoroCountEl = document.getElementById("pomodoroCount");
-const totalFocusTimeEl = document.getElementById("totalFocusTime");
+const totalFocusHoursEl = document.getElementById("totalFocusHours");
+const totalFocusMinutesEl = document.getElementById("totalFocusMinutes");
+const viewStatsLink = document.getElementById("viewStatsLink");
 
 let timer = {
   isRunning: false,
@@ -35,11 +37,11 @@ function updateStats() {
     const focusData = result.focusData || {};
     const todayDate = getTodayDate();
 
-    if (focusData[todayDate]) {
-      const { pomodoroCount, totalFocusTime } = focusData[todayDate];
-      pomodoroCountEl.textContent = pomodoroCount || 0;
-      totalFocusTimeEl.textContent = Math.floor((totalFocusTime || 0) / 60);
-    }
+    const { pomodoroCount = 0, totalFocusTime = 0 } =
+      focusData[todayDate] || {};
+    pomodoroCountEl.textContent = pomodoroCount;
+    totalFocusHoursEl.textContent = Math.floor(totalFocusTime / 3600);
+    totalFocusMinutesEl.textContent = Math.floor((totalFocusTime % 3600) / 60);
   });
 }
 
@@ -85,6 +87,11 @@ resetBtn.addEventListener("click", () => {
   });
 });
 
+viewStatsLink.addEventListener("click", (e) => {
+  e.preventDefault();
+  chrome.tabs.create({ url: "src/stats/index.html" });
+});
+
 function init() {
   chrome.runtime.sendMessage({ action: "getTimerState" }, (response) => {
     if (response && response.timer) {
@@ -106,4 +113,4 @@ chrome.runtime.onMessage.addListener((request) => {
   }
 });
 
-// TODO: I think you have to add an time event listener if it exists to make the app update the stats at the start of the day
+// TODO: I think you have to add a time event listener if it exists to make the app update the stats at the start of the day
