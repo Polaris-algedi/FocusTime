@@ -94,13 +94,16 @@ function updateDuration(duration) {
 }
 
 function handleTimerEnd() {
-  pauseTimer();
   chrome.storage.local.get("focusData", (result) => {
-    /* const newCount = (result.focusData.pomodoroCount || 0) + 1;
-    const newTime = (result.totalFocusTime || 0) + timer.duration * 60; */
-
     const focusData = result.focusData || {};
     const todayDate = getTodayDate();
+    //----------------------DEBUG-------------------------
+    console.log(todayDate);
+    const now = new Date();
+    console.log("Current Date Object:", now);
+    console.log("Current UTC Date String:", now.toUTCString());
+    console.log("Current Local Date String:", now.toString());
+    //----------------------------------------------------
 
     if (focusData[todayDate]) {
       const newCount = focusData[todayDate].pomodoroCount + 1;
@@ -122,6 +125,7 @@ function handleTimerEnd() {
       focusData: focusData,
     });
   });
+  resetTimer(timer.duration);
   // You can add notification logic here
 }
 
