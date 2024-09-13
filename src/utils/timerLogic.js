@@ -1,4 +1,4 @@
-export const MIN_DURATION = 1 / 5; // 5 minutes
+export const MIN_DURATION = 1; // 5 minutes
 export const MAX_DURATION = 60; // 60 minutes
 export const DEFAULT_DURATION = 25; // 25 minutes
 export const STEP = 5; // 5 minutes
@@ -43,6 +43,21 @@ export function formatTime(timeInSeconds) {
  * @return {string} The current date as a string in 'YYYY-MM-DD' format.
  */
 export function getTodayDate() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0"); // Months are zero-based
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+/* 
+This function returns the current date in UTC format (YYYY-MM-DD). 
+It uses the toISOString() method, which provides the date and time in UTC. 
+The split("T")[0] part extracts just the date portion.
+*/
+/*
+export function getTodayDate() {
   const today = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
   return today;
 }
+*/
