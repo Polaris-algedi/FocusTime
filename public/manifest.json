@@ -6,12 +6,12 @@
   "action": {
     "default_popup": "src/popup/index.html"
   },
-  "permissions": [
-    "storage",
-    "alarms"
-  ],
+  "permissions": ["storage", "alarms", "tabs", "scripting"],
   "background": {
     "service_worker": "src/background/background.js",
     "type": "module"
+  },
+  "chrome_url_overrides": {
+    "newtab": "src/stats/index.html"
   }
 }
