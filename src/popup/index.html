@@ -22,10 +22,15 @@
         <button id="resetBtn">Reset</button>
       </div>
       <div id="stats">
+        <h2>Today's Stats</h2>
         <p>Pomodoros completed: <span id="pomodoroCount">0</span></p>
-        <p>Total focus time: <span id="totalFocusTime">0</span> minutes</p>
+        <p>
+          Total Focus Time: <span id="totalFocusHours"></span> h
+          <span id="totalFocusMinutes"></span> min
+        </p>
       </div>
     </div>
+    <a href="#" id="viewStatsLink">View Detailed Statistics</a>
     <script type="module" src="./popup.js"></script>
   </body>
 </html>
