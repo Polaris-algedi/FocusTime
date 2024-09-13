@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Pomodoro Statistics</title>
+  </head>
+  <body>
+    <div id="app">
+      <h1>Pomodoro Statistics</h1>
+      <div id="chartContainer">
+        <canvas id="weeklyChart"></canvas>
+      </div>
+      <div id="statsContainer">
+        <h2>Summary</h2>
+        <p>Total Pomodoros: <span id="totalPomodoros"></span></p>
+        <p>
+          Total Focus Time: <span id="totalFocusHours"></span> h
+          <span id="totalFocusMinutes"></span> min
+        </p>
+      </div>
+    </div>
+    <script type="module" src="./stats.js"></script>
+  </body>
+</html>
