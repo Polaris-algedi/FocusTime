@@ -1,6 +1,7 @@
 export const MIN_DURATION = 1; // 5 minutes
 export const MAX_DURATION = 60; // 60 minutes
-export const DEFAULT_DURATION = 25; // 25 minutes
+export const DEFAULT_FOCUS_DURATION = 25; // 25 minutes
+export const DEFAULT_BREAK_DURATION = 5; // 5 minutes
 export const STEP = 5; // 5 minutes
 
 /**

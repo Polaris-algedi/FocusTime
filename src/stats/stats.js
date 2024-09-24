@@ -30,7 +30,7 @@ async function getWeeklyData() {
     .sort(([dateA], [dateB]) => new Date(dateA) - new Date(dateB)) // Sort dates in ascending order
     .map(([date, data]) => ({
       date,
-      pomodoroCount: data.pomodoroCount,
+      sessionCount: data.sessionCount,
       totalFocusTime: Math.round(data.totalFocusTime / 3600), // Convert to hours
     }));
 
@@ -53,14 +53,14 @@ async function renderWeeklyChart() {
       labels: weeklyData.map((d) => new Date(d.date).toLocaleDateString()),
       datasets: [
         {
-          label: "Pomodoros Completed",
-          data: weeklyData.map((d) => d.pomodoroCount),
+          label: "Sessions Completed",
+          data: weeklyData.map((d) => d.sessionCount),
           backgroundColor: "rgba(75, 192, 192, 0.2)",
           borderColor: "rgba(75, 192, 192, 1)",
           borderWidth: 1,
         },
         {
-          label: "Focus Time (minutes)",
+          label: "Focus Time (hours)",
           data: weeklyData.map((d) => d.totalFocusTime),
           backgroundColor: "rgba(153, 102, 255, 0.2)",
           borderColor: "rgba(153, 102, 255, 1)",
@@ -81,7 +81,7 @@ async function renderWeeklyChart() {
 
 async function updateSummaryStats() {
   const stats = await getAllTimeStats();
-  document.getElementById("totalPomodoros").textContent = stats.pomodoroCount;
+  document.getElementById("totalSessions").textContent = stats.sessionCount;
   document.getElementById("totalFocusHours").textContent = Math.round(
     stats.totalFocusTime / 3600
   );

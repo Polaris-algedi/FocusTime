@@ -21,9 +21,9 @@ export async function getAllTimeStats() {
 
   return Object.values(focusData).reduce(
     (total, day) => ({
-      pomodoroCount: total.pomodoroCount + day.pomodoroCount,
+      sessionCount: total.sessionCount + day.sessionCount,
       totalFocusTime: total.totalFocusTime + day.totalFocusTime,
     }),
-    { pomodoroCount: 0, totalFocusTime: 0 }
+    { sessionCount: 0, totalFocusTime: 0 }
   );
 }

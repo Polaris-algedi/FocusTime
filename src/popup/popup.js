@@ -2,7 +2,7 @@ import "./popup.css";
 import {
   MIN_DURATION,
   MAX_DURATION,
-  DEFAULT_DURATION,
+  DEFAULT_FOCUS_DURATION,
   increaseDuration,
   decreaseDuration,
   formatTime,
@@ -16,15 +16,15 @@ const increaseBtn = document.getElementById("increaseBtn");
 const startBtn = document.getElementById("startBtn");
 const pauseBtn = document.getElementById("pauseBtn");
 const resetBtn = document.getElementById("resetBtn");
-const pomodoroCountEl = document.getElementById("pomodoroCount");
+const sessionCountEl = document.getElementById("sessionCount");
 const totalFocusHoursEl = document.getElementById("totalFocusHours");
 const totalFocusMinutesEl = document.getElementById("totalFocusMinutes");
 const viewStatsLink = document.getElementById("viewStatsLink");
 
 let timer = {
   isRunning: false,
-  timeLeft: DEFAULT_DURATION * 60,
-  duration: DEFAULT_DURATION,
+  timeLeft: DEFAULT_FOCUS_DURATION * 60,
+  duration: DEFAULT_FOCUS_DURATION,
 };
 
 function updateDisplay() {
@@ -37,9 +37,8 @@ function updateStats() {
     const focusData = result.focusData || {};
     const todayDate = getTodayDate();
 
-    const { pomodoroCount = 0, totalFocusTime = 0 } =
-      focusData[todayDate] || {};
-    pomodoroCountEl.textContent = pomodoroCount;
+    const { sessionCount = 0, totalFocusTime = 0 } = focusData[todayDate] || {};
+    sessionCountEl.textContent = sessionCount;
     totalFocusHoursEl.textContent = Math.floor(totalFocusTime / 3600);
     totalFocusMinutesEl.textContent = Math.floor((totalFocusTime % 3600) / 60);
   });
