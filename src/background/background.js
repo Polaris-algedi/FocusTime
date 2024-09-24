@@ -1,24 +1,34 @@
 import {
-  DEFAULT_DURATION,
+  DEFAULT_FOCUS_DURATION,
+  DEFAULT_BREAK_DURATION,
   formatTime,
   getTodayDate,
 } from "../utils/timerLogic.js";
 
 let timer = {
   isRunning: false,
-  timeLeft: DEFAULT_DURATION * 60,
-  duration: DEFAULT_DURATION,
+  timeLeft: DEFAULT_FOCUS_DURATION * 60,
+  duration: DEFAULT_FOCUS_DURATION,
   interval: null,
+  break: {
+    isBreak: false,
+    breakNumber: 0,
+  },
+};
+
+const options = {
+  type: "basic",
+  skipBreaks: false,
+  timer: timer,
 };
 
 const focusData = {
   /*"2024-01-01": {
-    "pomodoroCount": 0,
+    "sessionCount": 0,
     "totalFocusTime": 0,
     "totalBreakTime": 0,
     "dailyGoal": 0,
-
-
+    ""
   }*/
 };
 
@@ -53,13 +63,19 @@ function startTimer(duration) {
   if (!timer.isRunning) {
     timer.isRunning = true;
     timer.duration = duration;
-    timer.timeLeft = duration * 60;
+    // Prevent overwriting the timer when restarting
+    // Check if the new duration is different from the previous one
+    // If it's different, update the timer's timeLeft; otherwise, keep the current timeLeft
+    timer.timeLeft =
+      timer.duration !== duration ? duration * 60 : timer.timeLeft;
+
     timer.interval = setInterval(() => {
       timer.timeLeft--;
       if (timer.timeLeft <= 0) {
         handleTimerEnd();
       }
       updatePopup();
+      updateBadge();
     }, 1000);
   }
 }
@@ -77,6 +93,7 @@ function pauseTimer() {
   // main code
   timer.isRunning = false;
   clearInterval(timer.interval);
+  updateBadge();
   updatePopup();
 }
 
@@ -90,10 +107,13 @@ function resetTimer(duration) {
 function updateDuration(duration) {
   timer.duration = duration;
   timer.timeLeft = duration * 60;
+  updateBadge();
   updatePopup();
 }
 
 function handleTimerEnd() {
+  // Update focus data
+  // Get today's date
   chrome.storage.local.get("focusData", (result) => {
     const focusData = result.focusData || {};
     const todayDate = getTodayDate();
@@ -105,28 +125,55 @@ function handleTimerEnd() {
     console.log("Current Local Date String:", now.toString());
     //----------------------------------------------------
 
-    if (focusData[todayDate]) {
-      const newCount = focusData[todayDate].pomodoroCount + 1;
+    if (timer.break.isBreak) {
+      focusData[todayDate].totalBreakTime += timer.duration * 60;
+      resetTimer(DEFAULT_FOCUS_DURATION);
+      timer.break.isBreak = false;
+    } else if (focusData[todayDate]) {
+      // Check if today's date is already in focusData
+      const newCount = focusData[todayDate].sessionCount + 1;
       const newTime = focusData[todayDate].totalFocusTime + timer.duration * 60;
 
-      focusData[todayDate].pomodoroCount = newCount;
+      focusData[todayDate].sessionCount = newCount;
       focusData[todayDate].totalFocusTime = newTime;
-      // focusData[todayDate].totalBreakTime = 0; // handle total break time later
+
+      resetTimer(DEFAULT_BREAK_DURATION);
+      timer.break.isBreak = true;
     } else {
       focusData[todayDate] = {
-        pomodoroCount: 1,
+        sessionCount: 1,
         totalFocusTime: timer.duration * 60,
         totalBreakTime: 0,
         dailyGoal: 0, // handle daily Goal time later
       };
+
+      resetTimer(DEFAULT_BREAK_DURATION);
+      timer.break.isBreak = true;
     }
 
     chrome.storage.local.set({
       focusData: focusData,
+      dataBackup: focusData,
     });
   });
-  resetTimer(timer.duration);
-  // You can add notification logic here
+}
+
+function updateBadge() {
+  const timerMinutes = Math.floor(timer.timeLeft / 60);
+  const timerSeconds = timer.timeLeft % 60;
+  let badgeText = `${timerMinutes.toString().padStart(2, "0")}:${timerSeconds
+    .toString()
+    .padStart(2, "0")}`;
+  chrome.action.setBadgeText({ text: badgeText });
+  if (timer.break.isBreak) {
+    chrome.action.setBadgeBackgroundColor({
+      color: timer.isRunning ? "#4CAF50" : "#FFFF00",
+    });
+  } else {
+    chrome.action.setBadgeBackgroundColor({
+      color: timer.isRunning ? "#FF5722" : "#FFFF00",
+    });
+  }
 }
 
 function updatePopup() {
