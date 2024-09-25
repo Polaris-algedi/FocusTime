@@ -14,7 +14,77 @@ let timer = {
     isBreak: false,
     breakNumber: 0,
   },
+  sessionCounter: 0,
+
+  loadStateFromStorage: function () {
+    return new Promise((resolve, reject) => {
+      if (chrome && chrome.storage && chrome.storage.local) {
+        chrome.storage.local.get(["timerState"], (result) => {
+          if (chrome.runtime.lastError) {
+            reject(chrome.runtime.lastError);
+          } else if (result.timerState) {
+            const state = result.timerState;
+            this.timeLeft = state.timeLeft;
+            this.duration = state.duration;
+            this.break.isBreak = state.isBreak;
+            this.sessionCounter = state.sessionCounter;
+            this.break.breakNumber = state.breakNumber;
+            this.isRunning = state.isRunning;
+            console.log("Timer state loaded from storage");
+            resolve(state);
+          } else {
+            console.log("No saved timer state found in storage");
+            resolve(null);
+          }
+        });
+      } else {
+        reject(new Error("Chrome storage is not available"));
+      }
+    });
+  },
+
+  saveStateToStorage: function () {
+    return new Promise((resolve, reject) => {
+      if (chrome && chrome.storage && chrome.storage.local) {
+        const state = {
+          timeLeft: this.timeLeft,
+          duration: this.duration,
+          isBreak: this.break.isBreak,
+          sessionCounter: this.sessionCounter,
+          breakNumber: this.break.breakNumber,
+          isRunning: this.isRunning,
+          lastUpdated: getTodayDate(),
+        };
+
+        chrome.storage.local.set({ timerState: state }, () => {
+          if (chrome.runtime.lastError) {
+            reject(chrome.runtime.lastError);
+          } else {
+            console.log("Timer state saved to storage");
+            resolve();
+          }
+        });
+      } else {
+        reject(new Error("Chrome storage is not available"));
+      }
+    });
+  },
 };
+
+// Load state
+timer
+  .loadStateFromStorage()
+  .then((state) => {
+    if (state) {
+      console.log("Loaded timer state:", state);
+      // Initialize UI with the loaded state
+      updatePopup();
+      updateBadge();
+    } else {
+      console.log("No saved state, using default values");
+    }
+  })
+  .catch((error) => console.error("Error loading timer state:", error));
 
 const options = {
   type: "basic",
@@ -93,6 +163,10 @@ function pauseTimer() {
   // main code
   timer.isRunning = false;
   clearInterval(timer.interval);
+  timer
+    .saveStateToStorage()
+    .then(() => console.log("Timer state saved successfully"))
+    .catch((error) => console.error("Error saving timer state:", error));
   updateBadge();
   updatePopup();
 }
@@ -101,6 +175,10 @@ function resetTimer(duration) {
   pauseTimer();
   timer.duration = duration;
   timer.timeLeft = duration * 60;
+  timer
+    .saveStateToStorage()
+    .then(() => console.log("Timer state saved successfully"))
+    .catch((error) => console.error("Error saving timer state:", error));
   updatePopup();
 }
 
@@ -117,29 +195,42 @@ function handleTimerEnd() {
   chrome.storage.local.get("focusData", (result) => {
     const focusData = result.focusData || {};
     const todayDate = getTodayDate();
+
     //----------------------DEBUG-------------------------
-    console.log(todayDate);
+    /* console.log(todayDate);
     const now = new Date();
     console.log("Current Date Object:", now);
     console.log("Current UTC Date String:", now.toUTCString());
-    console.log("Current Local Date String:", now.toString());
+    console.log("Current Local Date String:", now.toString()); */
     //----------------------------------------------------
 
     if (timer.break.isBreak) {
       focusData[todayDate].totalBreakTime += timer.duration * 60;
-      resetTimer(DEFAULT_FOCUS_DURATION);
+      // Count the break
+      timer.break.breakNumber++;
+      // Reset the timer and save the extension state and go back to focus mode
       timer.break.isBreak = false;
+      resetTimer(DEFAULT_FOCUS_DURATION);
     } else if (focusData[todayDate]) {
       // Check if today's date is already in focusData
+
+      // Count the session
+      timer.sessionCounter++;
+
+      // Update focus data
+
       const newCount = focusData[todayDate].sessionCount + 1;
       const newTime = focusData[todayDate].totalFocusTime + timer.duration * 60;
 
       focusData[todayDate].sessionCount = newCount;
       focusData[todayDate].totalFocusTime = newTime;
 
-      resetTimer(DEFAULT_BREAK_DURATION);
+      // Reset the timer and save the extension state and go back to break mode
+
       timer.break.isBreak = true;
+      resetTimer(DEFAULT_BREAK_DURATION);
     } else {
+      // If today's date is not in focusData, create a new entry
       focusData[todayDate] = {
         sessionCount: 1,
         totalFocusTime: timer.duration * 60,
@@ -147,8 +238,8 @@ function handleTimerEnd() {
         dailyGoal: 0, // handle daily Goal time later
       };
 
-      resetTimer(DEFAULT_BREAK_DURATION);
       timer.break.isBreak = true;
+      resetTimer(DEFAULT_BREAK_DURATION);
     }
 
     chrome.storage.local.set({
